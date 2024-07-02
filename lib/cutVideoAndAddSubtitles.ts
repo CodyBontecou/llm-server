@@ -21,22 +21,54 @@ export function cutVideoAndAddSubtitles(
       .setDuration(endTime - startTime)
 
     const drawTextArray = []
+    let currentGroup = []
+    let currentGroupLength = 0
+    let groupStartTime = 0
 
     words.forEach((wordObj, index) => {
       const { word, start, end } = wordObj
-      const adjustedStart = start - startTime
-      const adjustedEnd = end - startTime
-
       const formattedWord = word.replace(/'/g, '')
+
+      if (currentGroupLength + formattedWord.length <= 15) {
+        if (currentGroup.length === 0) {
+          groupStartTime = start
+        }
+        currentGroup.push(formattedWord)
+        currentGroupLength += formattedWord.length
+      } else {
+        // Add the current group to drawTextArray
+        addGroupToDrawTextArray(currentGroup, groupStartTime, start, startTime)
+        // Start a new group with the current word
+        currentGroup = [formattedWord]
+        currentGroupLength = formattedWord.length
+        groupStartTime = start
+      }
+
+      // If it's the last word, add the remaining group
+      if (index === words.length - 1) {
+        addGroupToDrawTextArray(currentGroup, groupStartTime, end, startTime)
+      }
+    })
+
+    function addGroupToDrawTextArray(
+      group,
+      groupStart,
+      groupEnd,
+      videoStartTime
+    ) {
+      const groupText = group.join(' ')
+      const adjustedStart = groupStart - videoStartTime
+      const adjustedEnd = groupEnd - videoStartTime
+
       let generatedText =
-        `drawtext=fontfile=Roboto-Regular.ttf:text='${formattedWord}':` +
+        `drawtext=fontfile=Roboto-Regular.ttf:text='${groupText}':` +
         `enable='between(t,${adjustedStart.toFixed(2)},${adjustedEnd.toFixed(
           2
         )})':` +
         `x=(w-tw)/2:y=(h-th)/2:fontsize=96:fontcolor=white:box=1:boxcolor=black@0.8:boxborderw=4`
 
       drawTextArray.push(generatedText)
-    })
+    }
 
     command
       .videoFilters(drawTextArray.join(', '))
