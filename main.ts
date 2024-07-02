@@ -16,7 +16,11 @@ fs.readFile('./output.json', 'utf8', (err, data) => {
   // console.log(realStrings)
 
   realStrings.forEach(s => {
-    let matchedWords = matchWords(s, transcript.words)
-    console.log(matchedWords)
+    const matchedWords = matchWords(s, transcript.words)
+    // console.log(matchedWords)
+    const startTime = matchedWords[0]
+    const endTime = matchedWords[matchedWords.length - 1]
+
+    console.log(startTime, endTime)
   })
 })

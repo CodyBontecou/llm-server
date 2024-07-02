@@ -4,15 +4,28 @@ export function matchWords(sentence, wordsArray) {
     .match(/\b\w+(?:'\w+)?\b/g)
     .map(word => word.toLowerCase())
   let i = 0
+  let j = 0
 
-  for (let wordObj of wordsArray) {
-    if (i < sentenceWords.length) {
-      let cleanWord = wordObj.word.toLowerCase().replace(/[^a-z']/g, '')
-      if (cleanWord === sentenceWords[i]) {
-        result.push(wordObj)
-        i++
+  while (i < sentenceWords.length && j < wordsArray.length) {
+    let cleanWord = wordsArray[j].word.toLowerCase().replace(/[^a-z']/g, '')
+    if (cleanWord === sentenceWords[i]) {
+      let sequence = true
+      for (let k = 1; k < sentenceWords.length - i; k++) {
+        if (
+          j + k >= wordsArray.length ||
+          wordsArray[j + k].word.toLowerCase().replace(/[^a-z']/g, '') !==
+            sentenceWords[i + k]
+        ) {
+          sequence = false
+          break
+        }
+      }
+      if (sequence) {
+        result = wordsArray.slice(j, j + sentenceWords.length - i)
+        break
       }
     }
+    j++
   }
 
   return result
