@@ -20,10 +20,14 @@ export function cutVideoAndAddSubtitles(
       .setStartTime(startTime)
       .setDuration(endTime - startTime)
 
-    const drawTextArray = []
+    const filterComplex = []
     let currentGroup = []
     let currentGroupLength = 0
     let groupStartTime = 0
+
+    // Add a single black box for the entire duration
+    const boxFilter = 'drawbox=y=(ih-136)/2:w=iw:h=136:color=black@0.8:t=fill'
+    filterComplex.push(boxFilter)
 
     words.forEach((wordObj, index) => {
       const { word, start, end } = wordObj
@@ -36,8 +40,8 @@ export function cutVideoAndAddSubtitles(
         currentGroup.push(formattedWord)
         currentGroupLength += formattedWord.length
       } else {
-        // Add the current group to drawTextArray
-        addGroupToDrawTextArray(currentGroup, groupStartTime, start, startTime)
+        // Add the current group to filterComplex
+        addGroupToFilterComplex(currentGroup, groupStartTime, start, startTime)
         // Start a new group with the current word
         currentGroup = [formattedWord]
         currentGroupLength = formattedWord.length
@@ -46,11 +50,11 @@ export function cutVideoAndAddSubtitles(
 
       // If it's the last word, add the remaining group
       if (index === words.length - 1) {
-        addGroupToDrawTextArray(currentGroup, groupStartTime, end, startTime)
+        addGroupToFilterComplex(currentGroup, groupStartTime, end, startTime)
       }
     })
 
-    function addGroupToDrawTextArray(
+    function addGroupToFilterComplex(
       group,
       groupStart,
       groupEnd,
@@ -60,18 +64,19 @@ export function cutVideoAndAddSubtitles(
       const adjustedStart = groupStart - videoStartTime
       const adjustedEnd = groupEnd - videoStartTime
 
-      let generatedText =
-        `drawtext=fontfile=Roboto-Regular.ttf:text='${groupText}':` +
+      let textFilter =
+        `drawtext=fontfile=Roboto-Regular.ttf:` +
+        `text='${groupText}':fontsize=96:fontcolor=white:` +
+        `x=(w-tw)/2:y=(h-th)/2:` +
         `enable='between(t,${adjustedStart.toFixed(2)},${adjustedEnd.toFixed(
           2
-        )})':` +
-        `x=(w-tw)/2:y=(h-th)/2:fontsize=96:fontcolor=white:box=1:boxcolor=black@0.8:boxborderw=4`
+        )})'`
 
-      drawTextArray.push(generatedText)
+      filterComplex.push(textFilter)
     }
 
     command
-      .videoFilters(drawTextArray.join(', '))
+      .videoFilters(filterComplex)
       .output(outputFile)
       .videoCodec('libx264')
       .audioCodec('copy')
