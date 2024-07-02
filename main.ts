@@ -4,6 +4,8 @@ import { extractRealStrings } from './lib/extractRealStrings'
 import { matchWords } from './lib/matchWords'
 import { realStrings } from './mocks/realStrings'
 import { cutVideo } from './lib/cutVideo'
+import { addSubtitlesToVideo } from './lib/addSubtitlesToVideo'
+import { cutVideoAndAddSubtitles } from './lib/cutVideoAndAddSubtitles'
 
 fs.readFile('./output.json', 'utf8', (err, data) => {
   if (err) {
@@ -24,8 +26,19 @@ fs.readFile('./output.json', 'utf8', (err, data) => {
 
     console.log(startTime, endTime)
 
-    cutVideo('mocks/10min.mp4', `${index}.mp4`, startTime, endTime)
-      .then(() => console.log('Video cut successfully'))
-      .catch(err => console.error('Error cutting video:', err))
+    // cutVideo('mocks/10min.mp4', `${index}.mp4`, startTime, endTime)
+    //   .then(() => console.log('Video cut successfully'))
+    //   .catch(err => console.error('Error cutting video:', err))
+    cutVideoAndAddSubtitles(
+      'mocks/10min.mp4',
+      `${index}-subtitles.mp4`,
+      startTime,
+      endTime,
+      matchedWords
+    )
+      .then(() =>
+        console.log('Video processing completed: ', `${index}-subtitles.mp4`)
+      )
+      .catch(err => console.error('Error processing video:', err))
   })
 })
