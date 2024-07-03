@@ -22,30 +22,31 @@ async function processAudio(audioData) {
 
     const realStrings = extractRealStrings(whisperRes.text, content.sections)
 
-    for (let index = 0; index < realStrings.length; index++) {
-      const iterationStartTime = performance.now()
-      const s = realStrings[index]
+    await Promise.all(
+      realStrings.map(async (s, index) => {
+        const iterationStartTime = performance.now()
 
-      const matchedWords = matchWords(s, whisperRes.words)
-      console.log('matchedWords: ', matchedWords)
+        const matchedWords = matchWords(s, whisperRes.words)
+        console.log('matchedWords: ', matchedWords)
 
-      const startTime = matchedWords[0].start
-      const endTime = matchedWords[matchedWords.length - 1].end
+        const startTime = matchedWords[0].start
+        const endTime = matchedWords[matchedWords.length - 1].end
 
-      await cutVideoAndAddSubtitles(
-        'mocks/10min.mp4',
-        `${index}-fullrun.mp4`,
-        startTime,
-        endTime,
-        matchedWords
-      )
+        await cutVideoAndAddSubtitles(
+          'mocks/10min.mp4',
+          `${index}-fullrun.mp4`,
+          startTime,
+          endTime,
+          matchedWords
+        )
 
-      console.log(
-        `Video processing for index ${index} completed in ${
-          performance.now() - iterationStartTime
-        } ms`
-      )
-    }
+        console.log(
+          `Video processing for index ${index} completed in ${
+            performance.now() - iterationStartTime
+          } ms`
+        )
+      })
+    )
   } catch (error) {
     console.error('Error:', error)
   } finally {
