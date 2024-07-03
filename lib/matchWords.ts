@@ -1,4 +1,11 @@
-export function matchWords(sentence, wordsArray) {
+export function matchWords(
+  sentence: string,
+  wordsArray: {
+    word: string
+    start: number
+    end: number
+  }[]
+) {
   let result = []
   let sentenceWords = sentence
     .match(/\b\w+(?:'\w+)?\b/g)
