@@ -1,10 +1,6 @@
 import OpenAI, { toFile } from 'openai'
-import * as fs from 'fs'
 
 const openai = new OpenAI()
-
-const audioFile = 'mocks/output.mp3'
-const audioData = fs.readFileSync(audioFile)
 
 export async function whisperTranscribe(audioBuffer) {
   const transcription = await openai.audio.transcriptions.create({
@@ -36,30 +32,3 @@ export async function chatRequest(transcript: string) {
   })
   return completion
 }
-
-// whisperTranscribe(audioData).then(res => {
-//   console.log(res)
-//   fs.writeFile('output.json', JSON.stringify(res), err => {
-//     if (err) {
-//       console.error('Error writing to file:', err)
-//       return
-//     }
-//     console.log('Data has been written to output.json')
-//   })
-//   chatRequest(res.text).then(chatRes => {
-//     const jsonData = JSON.stringify(chatRes.choices[0])
-//     fs.writeFile('output.json', jsonData, err => {
-//       if (err) {
-//         console.error('Error writing to JSON file:', err)
-//         return
-//       }
-//       console.log('Data has been written to output.json')
-//     })
-//   })
-// })
-
-// import output from '../output.json'
-
-// chatRequest(output.text).then(res =>
-//   console.log(res.choices[0].message.content)
-// )
