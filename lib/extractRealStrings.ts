@@ -6,11 +6,11 @@ export function extractRealStrings(
 ): string[] {
   const realStrings: string[] = []
 
-  // for (const aiString of aiStrings) {
-  const [bestMatch, ratio] = findBestMatch(aiStrings[0], transcript)
-  realStrings.push(bestMatch)
-  console.log(`Match ratio: ${ratio.toFixed(2)}`)
-  // }
+  for (const aiString of aiStrings) {
+    const [bestMatch, ratio] = findBestMatch(aiString, transcript)
+    realStrings.push(bestMatch)
+    console.log(`Match ratio: ${ratio.toFixed(2)}`)
+  }
 
   return realStrings
 }
