@@ -6,7 +6,7 @@ const openai = new OpenAI()
 const audioFile = 'mocks/output.mp3'
 const audioData = fs.readFileSync(audioFile)
 
-async function whisperTranscribe(audioBuffer) {
+export async function whisperTranscribe(audioBuffer) {
   const transcription = await openai.audio.transcriptions.create({
     file: await toFile(audioBuffer, 'speech.mp3'),
     model: 'whisper-1',
@@ -16,7 +16,7 @@ async function whisperTranscribe(audioBuffer) {
   return transcription
 }
 
-async function chatRequest(transcript: string) {
+export async function chatRequest(transcript: string) {
   const completion = await openai.chat.completions.create({
     messages: [
       {
@@ -27,32 +27,39 @@ async function chatRequest(transcript: string) {
       {
         role: 'user',
         content:
-          `Transcript: ${transcript}` +
-          "Give me sections of text extracted from this block of text that you believe to be the most interesting and worth sharing with others. Make sure the sections of text are at least 50 words longs. Do not return any text that isn't a part of the above segments.",
+          `Transcript: ${transcript}\n\n` +
+          'Extract 3-5 interesting sections from this transcript that are worth sharing. Each section should be at least 50 words long. Return your response as a valid JSON array of strings, where each string is an extracted section. Do not include any explanations or additional text outside the JSON array. Ensure the JSON is properly formatted and can be parsed by JSON.parse().',
       },
     ],
     model: 'gpt-4o',
+    response_format: { type: 'json_object' },
   })
   return completion
 }
 
-whisperTranscribe(audioData).then(res => {
-  console.log(res)
-  fs.writeFile('output.json', JSON.stringify(res), err => {
-    if (err) {
-      console.error('Error writing to file:', err)
-      return
-    }
-    console.log('Data has been written to output.json')
-  })
-  // chatRequest(res.text).then(chatRes => {
-  //   const jsonData = JSON.stringify(chatRes.choices[0])
-  //   fs.writeFile('output.json', jsonData, err => {
-  //     if (err) {
-  //       console.error('Error writing to JSON file:', err)
-  //       return
-  //     }
-  //     console.log('Data has been written to output.json')
-  //   })
-  // })
-})
+// whisperTranscribe(audioData).then(res => {
+//   console.log(res)
+//   fs.writeFile('output.json', JSON.stringify(res), err => {
+//     if (err) {
+//       console.error('Error writing to file:', err)
+//       return
+//     }
+//     console.log('Data has been written to output.json')
+//   })
+//   chatRequest(res.text).then(chatRes => {
+//     const jsonData = JSON.stringify(chatRes.choices[0])
+//     fs.writeFile('output.json', jsonData, err => {
+//       if (err) {
+//         console.error('Error writing to JSON file:', err)
+//         return
+//       }
+//       console.log('Data has been written to output.json')
+//     })
+//   })
+// })
+
+// import output from '../output.json'
+
+// chatRequest(output.text).then(res =>
+//   console.log(res.choices[0].message.content)
+// )
