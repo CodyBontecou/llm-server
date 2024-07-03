@@ -6,16 +6,34 @@ export function findBestMatch(query: string, text: string): [string, number] {
 
   let bestMatch = ''
   let bestRatio = 0
+  const queryLength = query.length
 
   // Iterate through combinations of sentences
   for (let i = 0; i < sentences.length; i++) {
+    let segment = sentences[i]
+    let segmentLength = segment.length
+
     for (let j = i; j < sentences.length; j++) {
-      const segment = sentences.slice(i, j + 1).join(' ')
       const ratio = similarity(query, segment)
 
       if (ratio > bestRatio) {
         bestRatio = ratio
         bestMatch = segment
+      }
+
+      // Early termination if we find a perfect match
+      if (bestRatio === 1) {
+        return [bestMatch, bestRatio]
+      }
+
+      // Early skip if the next segment would be too long
+      if (j + 1 < sentences.length) {
+        const nextSegmentLength = segmentLength + sentences[j + 1].length + 1 // +1 for space
+        if (nextSegmentLength > queryLength * 2) {
+          break
+        }
+        segment += ' ' + sentences[j + 1]
+        segmentLength = nextSegmentLength
       }
     }
   }

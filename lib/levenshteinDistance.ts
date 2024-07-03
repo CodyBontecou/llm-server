@@ -1,27 +1,43 @@
-export function levenshteinDistance(a: string, b: string): number {
-  const matrix: number[][] = []
+export function levenshteinDistance(
+  a: string,
+  b: string,
+  threshold = Infinity
+): number {
+  // Ensure 'a' is the longer string for consistency
+  if (a.length < b.length) {
+    ;[a, b] = [b, a]
+  }
 
+  // Early exit for empty strings
+  if (b.length === 0) return a.length
+
+  let previousRow: number[] = new Array(b.length + 1)
+  let currentRow: number[] = new Array(b.length + 1)
+
+  // Initialize the first row
   for (let i = 0; i <= b.length; i++) {
-    matrix[i] = [i]
+    previousRow[i] = i
   }
 
-  for (let j = 0; j <= a.length; j++) {
-    matrix[0][j] = j
-  }
+  for (let i = 0; i < a.length; i++) {
+    currentRow[0] = i + 1
 
-  for (let i = 1; i <= b.length; i++) {
-    for (let j = 1; j <= a.length; j++) {
-      if (b.charAt(i - 1) === a.charAt(j - 1)) {
-        matrix[i][j] = matrix[i - 1][j - 1]
-      } else {
-        matrix[i][j] = Math.min(
-          matrix[i - 1][j - 1] + 1,
-          matrix[i][j - 1] + 1,
-          matrix[i - 1][j] + 1
-        )
-      }
+    for (let j = 0; j < b.length; j++) {
+      const insertCost = currentRow[j] + 1
+      const deleteCost = previousRow[j + 1] + 1
+      const substituteCost = previousRow[j] + (a[i] !== b[j] ? 1 : 0)
+
+      currentRow[j + 1] = Math.min(insertCost, deleteCost, substituteCost)
     }
+
+    // Early termination check
+    if (Math.min(...currentRow) > threshold) {
+      return Infinity
+    }
+
+    // Swap rows
+    ;[previousRow, currentRow] = [currentRow, previousRow]
   }
 
-  return matrix[b.length][a.length]
+  return previousRow[b.length]
 }
