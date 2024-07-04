@@ -24,7 +24,7 @@ export async function chatRequest(transcript: string) {
         role: 'user',
         content:
           `Transcript: ${transcript}\n\n` +
-          'Extract 3-5 interesting sections from this transcript that are worth sharing. Each section should be at least 50 words long. Return your response as a valid JSON array of strings, where each string is an extracted section. Do not include any explanations or additional text outside the JSON array. Ensure the JSON is properly formatted and can be parsed by JSON.parse().',
+          'Extract 3-5 interesting sections from this transcript that are worth sharing. Each section should be at least 50 words long. Return your response as a valid JSON array of strings, where each string is an extracted section. Do not include any explanations or additional text outside the JSON array. Ensure the JSON is properly formatted and can be parsed by JSON.parse(). Ensure the data is structured like so: { "segments": ["...", "...", "..."] }',
       },
     ],
     model: 'gpt-4o',
