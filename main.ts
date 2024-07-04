@@ -8,19 +8,24 @@ async function processAudio(audioData) {
   const totalStartTime = performance.now()
 
   try {
+    const whisperStartTime = performance.now()
     const whisperRes = await whisperTranscribe(audioData)
     console.log(
-      `whisperTranscribe took ${performance.now() - totalStartTime} ms`
+      `whisperTranscribe took ${performance.now() - whisperStartTime} ms`
     )
 
+    const chatStartTime = performance.now()
     const chatRes = await chatRequest(whisperRes.text)
-    console.log(`chatRequest took ${performance.now() - totalStartTime} ms`)
+    console.log(`chatRequest took ${performance.now() - chatStartTime} ms`)
 
-    const jsonData = JSON.stringify(chatRes.choices[0])
-    const transcript = JSON.parse(jsonData)
-    const content = JSON.parse(transcript.message.content)
+    const realStringsStartTime = performance.now()
+    const content = JSON.parse(chatRes.choices[0].message.content)
 
+    console.log(content)
     const realStrings = extractRealStrings(whisperRes.text, content.sections)
+    console.log(
+      `chatRequest took ${performance.now() - realStringsStartTime} ms`
+    )
 
     await Promise.all(
       realStrings.map(async (s, index) => {
@@ -34,7 +39,7 @@ async function processAudio(audioData) {
 
         await cutVideoAndAddSubtitles(
           'mocks/10min.mp4',
-          `${index}-fullrun.mp4`,
+          `output/${index}-fullrun.mp4`,
           startTime,
           endTime,
           matchedWords
@@ -56,6 +61,8 @@ async function processAudio(audioData) {
   }
 }
 
+// TODO: Split main mp4 into multiple mp3s
+// iterate over mp3s and run them into processAudio
 const audioFile = 'mocks/output.mp3'
 const audioData = fs.readFileSync(audioFile)
 processAudio(audioData)
