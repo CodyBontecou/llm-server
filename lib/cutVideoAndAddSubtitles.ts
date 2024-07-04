@@ -32,8 +32,8 @@ export function cutVideoAndAddSubtitles(
     filterComplex.push(cropFilter)
 
     // Add a single black box for the entire duration
-    const boxFilter = 'drawbox=y=(ih-136)/2:w=iw:h=136:color=black@0.8:t=fill'
-    filterComplex.push(boxFilter)
+    // const boxFilter = 'drawbox=y=(ih-136)/2:w=iw:h=136:color=black@0.8:t=fill'
+    // filterComplex.push(boxFilter)
 
     words.forEach((wordObj, index) => {
       const { word, start, end } = wordObj
@@ -101,8 +101,7 @@ export function cutVideoAndAddSubtitles(
           `x=(${newWidth}-tw)/2:y=(${1080}-th)/2+${yOffset}:` +
           `enable='between(t,${adjustedStart.toFixed(2)},${adjustedEnd.toFixed(
             2
-          )})':` +
-          `box=1:boxcolor=black@0.5:boxborderw=5`
+          )})'`
         )
       })
 
