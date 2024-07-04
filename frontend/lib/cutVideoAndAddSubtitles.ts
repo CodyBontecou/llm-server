@@ -9,12 +9,20 @@ export function cutVideoAndAddSubtitles(
   endTime,
   words
 ) {
+  console.log('inputFile: ', inputFile)
+  console.log('outputFile: ', outputFile)
+
   return new Promise((resolve, reject) => {
     // Ensure the output directory exists
     const outputDir = path.dirname(outputFile)
     if (!fs.existsSync(outputDir)) {
       fs.mkdirSync(outputDir, { recursive: true })
     }
+
+    const ffmpegPath = 'ffmpeg' // or the actual path to your ffmpeg executable
+    const workingDir = process.cwd()
+    ffmpeg.setFfmpegPath(path.join(workingDir))
+    console.log('workingDir: ', workingDir)
 
     let command = ffmpeg(inputFile)
       .setStartTime(startTime)

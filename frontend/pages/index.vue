@@ -26,10 +26,10 @@ const uploadFile = async () => {
             Easily share your MP4 videos with our simple upload form.
           </p>
           <div class="flex flex-col gap-2">
-            <Label for="video"> Select MP4 File </Label>
+            <Label for="fileInput"> Select MP4 File </Label>
             <Input
-              id="video"
-              accept="video/mp4"
+              id="fileInput"
+              accept="video/mp4,.mp3"
               type="file"
               @input="handleFileInput"
             />

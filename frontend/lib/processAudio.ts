@@ -2,8 +2,11 @@ import { cutVideoAndAddSubtitles } from './cutVideoAndAddSubtitles'
 import { extractRealStrings } from './extractRealStrings'
 import { matchWords } from './matchWords'
 import { chatRequest, whisperTranscribe } from './whisper'
+import * as path from 'path'
+import * as fs from 'fs'
 
-export async function processAudio(audioData) {
+export async function processAudio(audioData: Buffer, fileName: string) {
+  console.log('processing audio')
   const totalStartTime = performance.now()
 
   try {
@@ -31,17 +34,28 @@ export async function processAudio(audioData) {
         const iterationStartTime = performance.now()
 
         const matchedWords = matchWords(s, whisperRes.words)
-        console.log('matchedWords: ', matchedWords)
 
         const startTime = matchedWords[0].start
         const endTime = matchedWords[matchedWords.length - 1].end
 
+        const inputFilePath = '/storage/userFiles/' + fileName
+        const outputFilePath = '/storage/userFiles/output-' + fileName
+
+        if (!fs.existsSync(inputFilePath)) {
+          console.error(`Input file not found: ${inputFilePath}`)
+          throw new Error(`Input file not found: ${inputFilePath}`)
+        }
+
         await cutVideoAndAddSubtitles(
-          'mocks/10min.mp4',
-          `output/${index}-fullrun.mp4`,
+          inputFilePath,
+          outputFilePath,
           startTime,
           endTime,
           matchedWords
+        )
+
+        console.log(
+          `File should be created at: /storage/userFiles/output-${fileName}`
         )
 
         console.log(
