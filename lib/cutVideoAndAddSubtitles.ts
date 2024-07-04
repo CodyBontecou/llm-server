@@ -25,6 +25,12 @@ export function cutVideoAndAddSubtitles(
     let currentGroupLength = 0
     let groupStartTime = 0
 
+    const newWidth = Math.round((1080 * 9) / 16) // 607.5, rounded to 608
+    const xOffset = Math.round((1920 - newWidth) / 2) // 656
+
+    const cropFilter = `crop=${newWidth}:1080:${xOffset}:0`
+    filterComplex.push(cropFilter)
+
     // Add a single black box for the entire duration
     const boxFilter = 'drawbox=y=(ih-136)/2:w=iw:h=136:color=black@0.8:t=fill'
     filterComplex.push(boxFilter)
@@ -64,15 +70,44 @@ export function cutVideoAndAddSubtitles(
       const adjustedStart = groupStart - videoStartTime
       const adjustedEnd = groupEnd - videoStartTime
 
-      let textFilter =
-        `drawtext=fontfile=Roboto-Regular.ttf:` +
-        `text='${groupText}':fontsize=96:fontcolor=white:` +
-        `x=(w-tw)/2:y=(h-th)/2:` +
-        `enable='between(t,${adjustedStart.toFixed(2)},${adjustedEnd.toFixed(
-          2
-        )})'`
+      const fontSize = 96 // Keep font size constant
+      const maxWidth = Math.floor(newWidth * 0.9) // 90% of video width
 
-      filterComplex.push(textFilter)
+      // Estimate characters that fit in maxWidth
+      const avgCharWidth = fontSize * 0.6 // Approximate average character width
+      const maxCharsPerLine = Math.floor(maxWidth / avgCharWidth)
+
+      // Split text into lines
+      const words = groupText.split(' ')
+      const lines = []
+      let currentLine = ''
+
+      words.forEach(word => {
+        if ((currentLine + ' ' + word).length <= maxCharsPerLine) {
+          currentLine += (currentLine ? ' ' : '') + word
+        } else {
+          if (currentLine) lines.push(currentLine)
+          currentLine = word
+        }
+      })
+      if (currentLine) lines.push(currentLine)
+
+      // Create separate drawtext filter for each line
+      const textFilters = lines.map((line, index) => {
+        const yOffset = index * (fontSize + 10) // 10 pixels line spacing
+        return (
+          `drawtext=fontfile=Roboto-Regular.ttf:` +
+          `text='${line}':fontsize=${fontSize}:fontcolor=white:` +
+          `x=(${newWidth}-tw)/2:y=(${1080}-th)/2+${yOffset}:` +
+          `enable='between(t,${adjustedStart.toFixed(2)},${adjustedEnd.toFixed(
+            2
+          )})':` +
+          `box=1:boxcolor=black@0.5:boxborderw=5`
+        )
+      })
+
+      // Add all text filters to the filterComplex
+      filterComplex.push(...textFilters)
     }
 
     command
