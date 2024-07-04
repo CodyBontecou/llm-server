@@ -8,3 +8,4 @@ dist
 *.mp4
 *.mp3
 .DS_Store
+.nuxt*
