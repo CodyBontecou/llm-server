@@ -66,43 +66,67 @@ export function cutVideoAndAddSubtitles(
       groupEnd,
       videoStartTime
     ) {
-      const groupText = group.join(' ')
-      const adjustedStart = groupStart - videoStartTime
-      const adjustedEnd = groupEnd - videoStartTime
-
       const fontSize = 96 // Keep font size constant
       const maxWidth = Math.floor(newWidth * 0.9) // 90% of video width
-
-      // Estimate characters that fit in maxWidth
       const avgCharWidth = fontSize * 0.6 // Approximate average character width
       const maxCharsPerLine = Math.floor(maxWidth / avgCharWidth)
 
-      // Split text into lines
-      const words = groupText.split(' ')
-      const lines = []
-      let currentLine = ''
+      let currentLine = []
+      let currentLineWidth = 0
+      let lines = []
 
-      words.forEach(word => {
-        if ((currentLine + ' ' + word).length <= maxCharsPerLine) {
-          currentLine += (currentLine ? ' ' : '') + word
-        } else {
-          if (currentLine) lines.push(currentLine)
-          currentLine = word
+      group.forEach((word, index) => {
+        const wordWidth = word.length * avgCharWidth
+
+        if (currentLineWidth + wordWidth > maxWidth) {
+          lines.push(currentLine)
+          currentLine = []
+          currentLineWidth = 0
         }
-      })
-      if (currentLine) lines.push(currentLine)
 
-      // Create separate drawtext filter for each line
-      const textFilters = lines.map((line, index) => {
-        const yOffset = index * (fontSize + 10) // 10 pixels line spacing
-        return (
-          `drawtext=fontfile=Roboto-Regular.ttf:` +
-          `text='${line}':fontsize=${fontSize}:fontcolor=white:` +
-          `x=(${newWidth}-tw)/2:y=(${1080}-th)/2+${yOffset}:` +
-          `enable='between(t,${adjustedStart.toFixed(2)},${adjustedEnd.toFixed(
-            2
-          )})'`
-        )
+        currentLine.push({ word, index })
+        currentLineWidth += wordWidth + avgCharWidth // Add space between words
+      })
+
+      if (currentLine.length > 0) {
+        lines.push(currentLine)
+      }
+
+      const textFilters = lines.flatMap((line, lineIndex) => {
+        let xOffset = 0
+        const yOffset = lineIndex * (fontSize + 10) // 10 pixels line spacing
+
+        return line.map(({ word, index }) => {
+          const wordStart =
+            groupStart + (index / group.length) * (groupEnd - groupStart)
+          const wordEnd =
+            groupStart + ((index + 1) / group.length) * (groupEnd - groupStart)
+          const adjustedWordStart = wordStart - videoStartTime
+          const adjustedWordEnd = wordEnd - videoStartTime
+
+          const filter =
+            `drawtext=fontfile=Roboto-Regular.ttf:` +
+            `text='${word.replace(
+              /'/g,
+              "'\\\\'"
+            )}':fontsize=${fontSize}:fontcolor=white:` +
+            `x=(${newWidth}-tw)/2+${xOffset}:y=(${1080}-th)/2+${yOffset}:` +
+            `enable='between(t,${(groupStart - videoStartTime).toFixed(2)},${(
+              groupEnd - videoStartTime
+            ).toFixed(2)})',` +
+            `drawtext=fontfile=Roboto-Regular.ttf:` +
+            `text='${word.replace(
+              /'/g,
+              "'\\\\'"
+            )}':fontsize=${fontSize}:fontcolor=red:` +
+            `x=(${newWidth}-tw)/2+${xOffset}:y=(${1080}-th)/2+${yOffset}:` +
+            `enable='between(t,${adjustedWordStart.toFixed(
+              2
+            )},${adjustedWordEnd.toFixed(2)})'`
+
+          xOffset += word.length * avgCharWidth + avgCharWidth / 2 // Add half space after word
+          return filter
+        })
       })
 
       // Add all text filters to the filterComplex
